@@ -10,10 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Unpack ZIP
+      - name: Download Official Fabric Template 26.3
         run: |
-          unzip -o aaaaa-template-26.3.zip
-          rm -f aaaaa-template-26.3.zip
+          git clone --depth 1 --branch 26.3 https://github.com template || git clone --depth 1 https://github.com template
+          mkdir -p template/src/client/java/com/example/aaaaa/client
+          cp AaaaaClient.java template/src/client/java/com/example/aaaaa/client/AaaaaClient.java
+          sed -i 's/"client": \[.*\]/"client": \["com.example.aaaaa.client.AaaaaClient"\]/' template/src/main/resources/fabric.mod.json || true
 
       - name: Set up JDK 25
         uses: actions/setup-java@v4
@@ -23,9 +25,7 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          GRADLEW_PATH=$(find . -name "gradlew" | head -n 1)
-          MOD_DIR=$(dirname "$GRADLEW_PATH")
-          cd "$MOD_DIR"
+          cd template
           chmod +x gradlew
           ./gradlew build
 
@@ -33,4 +33,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: compiled-mod
-          path: "**/build/libs/*.jar"
+          path: template/build/libs/*.jar
